@@ -63,6 +63,7 @@ public class Agent {
       InputStream in  = null;
       OutputStream out= null;
       Socket socket   = null;
+      MapModel mapm = new MapModel();
       Agent  agent    = new Agent();
       char   view[][] = new char[5][5];
       char   action   = 'F';
@@ -100,8 +101,11 @@ public class Agent {
                   }
                }
             }
+            mapm.updateMap( view );
+            mapm.printMap();
             agent.print_view( view ); // COMMENT THIS OUT BEFORE SUBMISSION
             action = agent.get_action( view );
+            mapm.doAction( action );
             out.write( action );
          }
       }
