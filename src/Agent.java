@@ -5,6 +5,7 @@
  *  UNSW Session 1, 2012
  */
 
+import java.lang.Exception;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -26,7 +27,7 @@ public class Agent {
 
             switch( ch ) { // if character is a valid action, return it
                case 'F': case 'L': case 'R': case 'C': case 'B':
-               case 'f': case 'l': case 'r': case 'c': case 'b':
+               case 'f': case 'l': case 'r': case 'c': case 'b': case 'W':case 'w':
                   return((char) ch );
             }
          }
@@ -64,6 +65,7 @@ public class Agent {
       OutputStream out= null;
       Socket socket   = null;
       MapModel mapm = new MapModel();
+      Planner planner = new Planner(mapm);
       Agent  agent    = new Agent();
       char   view[][] = new char[5][5];
       char   action   = 'F';
@@ -88,6 +90,9 @@ public class Agent {
          System.exit(-1);
       }
 
+
+      String goldPath = "";
+
       try { // scan 5-by-5 wintow around current location
          while( true ) {
             for( i=0; i < 5; i++ ) {
@@ -104,7 +109,18 @@ public class Agent {
             mapm.updateMap( view );
             mapm.printMap();
             agent.print_view( view ); // COMMENT THIS OUT BEFORE SUBMISSION
-            action = agent.get_action( view );
+            if(goldPath.equals("")) action = agent.get_action( view );
+            else
+            {
+               action = goldPath.charAt(0);
+               goldPath = goldPath.substring(1);
+               try{
+                  Thread.sleep(500);
+               }catch(Exception e){System.out.println("bunda");}
+            }
+            if(action == 'w' || action == 'W')
+               goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos()));
+
             mapm.doAction( action );
             out.write( action );
          }

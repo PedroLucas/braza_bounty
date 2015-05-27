@@ -99,6 +99,21 @@ public class MapModel {
    {
 	   return maxCol;
    }
+
+	public Point agentPos()
+	{
+		return new Point(this.lin,this.col);
+	}
+
+	public int getDir()
+	{
+		return dir;
+	}
+
+	public Point getGoldPos()
+	{
+		return goldPos;
+	}
    
    
    /*****************************************************/
