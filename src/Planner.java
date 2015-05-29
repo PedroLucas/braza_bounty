@@ -38,8 +38,6 @@ public class Planner{
                     if (ch != MapModel.WATER && ch != MapModel.WALL && ch != MapModel.TREE && ch != '?')
                     {
                         Point paux = new Point(pc.lin + i, pc.col + j);
-                        int totcost = cell.cost + h(paux, p) + 1;
-                        System.out.println(paux.toString() + " | cost:" + totcost + " | heuristic:" +  h(paux, p) );
                         pq.add(new Cell(paux, cell.cost + 1, cell));
                         count++;
                     }
