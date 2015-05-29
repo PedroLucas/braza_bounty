@@ -106,11 +106,12 @@ public class Agent {
                   }
                }
             }
+            action = 'c';
             mapm.updateMap( view );
             mapm.printMap();
             agent.print_view( view ); // COMMENT THIS OUT BEFORE SUBMISSION
-            if(goldPath.equals("")) action = agent.get_action( view );
-            else
+            //if(goldPath.equals("")) action = agent.get_action( view );
+            if(!goldPath.equals(""))
             {
                action = goldPath.charAt(0);
                goldPath = goldPath.substring(1);
@@ -118,8 +119,19 @@ public class Agent {
                   Thread.sleep(500);
                }catch(Exception e){System.out.println("bunda");}
             }
-            if(action == 'w' || action == 'W')
-               goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos()));
+            else if(mapm.hasGold())
+            	goldPath = planner.goHome();
+            else if(mapm.sawGold())
+            {
+            	goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos()));
+            	if(goldPath.equals(""))
+            	{
+            		System.out.println("Impossible map");
+            		System.exit(0);
+            	}
+            }
+            else if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
+            	System.out.println("Exploring!" + goldPath);
 
             mapm.doAction( action );
             out.write( action );

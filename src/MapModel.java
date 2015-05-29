@@ -70,6 +70,12 @@ public class MapModel {
 	   return map[l][c];
    }
    
+   public char map(Point p)
+   {
+	   return this.map(p.lin, p.col);
+
+   }
+   
    public boolean hasAxe()
    {
 	   return hasAxe;
@@ -113,6 +119,20 @@ public class MapModel {
 	public Point getGoldPos()
 	{
 		return goldPos;
+	}
+	
+	public boolean sawGold()
+	{
+		return (goldPos != null);
+	}
+	public boolean hasGold()
+	{
+		return hasGold;
+	}
+	
+	public Point home()
+	{
+		return new Point(79,79);
 	}
    
    
@@ -285,9 +305,11 @@ public class MapModel {
 	       case WEST:  nextCol--; break;
 	   }
 	   char ch = map[nextLin][nextCol];
+	   Point p = new Point(nextLin, nextCol);
+	  // System.out.println("Going to "+p.toString()+" | Tipo:"+this.map(p));
 	   if(ch == WALL || ch == TREE) return;
-	   if(ch == WATER && !inBoat) return;
-	   if(ch != WALL && ch != TREE && inBoat)
+	  // if(ch == WATER && !inBoat) return;
+	   if(ch != WALL && ch != TREE && ch != WATER && inBoat)
 	   {
 		   inBoat = false;
 		   listBoats.add(new Point(nextLin,nextCol));
@@ -312,6 +334,8 @@ public class MapModel {
 		   
 		   
 	   lin = nextLin; col = nextCol;
+	   
+	   
 	   
    }
    

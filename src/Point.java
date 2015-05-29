@@ -31,6 +31,21 @@ public class Point {
         return ( (this.lin == p.lin) &&
         		 (this.col == p.col) );
     }
+    
+    @Override
+    public int hashCode() {
+       
+        return (97 + this.lin) * 97 + this.col;
+    }
+    
+    @Override
+    public String toString()
+    {
+    	return  "("+lin+","+col+")";
+    }
+
+    
+    
 	
 	
 
