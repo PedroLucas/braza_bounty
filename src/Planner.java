@@ -18,9 +18,13 @@ public class Planner{
     public LinkedList<Point> astar(Point p) {
         CellComparator cmp = new CellComparator(p);
         PriorityQueue<Cell> pq = new PriorityQueue<Cell>(20, cmp);
+        HashSet<Point> visited = new HashSet<Point>();
         Point pAgent = mapModel.agentPos();
         Cell destCel = null;
-        pq.add(new Cell(pAgent, 0));
+        Cell aCell = new Cell(pAgent, 0);
+        aCell.inBoat = mapModel.inBoat();
+        pq.add(aCell);
+        
         
         int count = 0;
         
@@ -31,14 +35,31 @@ public class Planner{
                 destCel = cell;
                 break;
             }
+            visited.add(pc);
+            boolean inBoatNow = cell.inBoat;
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++) {
                     if (i != 0 && j != 0) continue;
+                    Point paux = new Point(pc.lin + i, pc.col + j);
                     char ch = mapModel.map(pc.lin + i, pc.col + j);
-                    if (ch != MapModel.WATER && ch != MapModel.WALL && ch != MapModel.TREE && ch != '?')
+                    if(visited.contains(paux)) continue;
+                    
+                    String forbiddenTerrains = "?"+ MapModel.WALL+MapModel.END;
+                    if(!mapModel.hasAxe())
+                    	forbiddenTerrains += MapModel.TREE;
+                    if(!inBoatNow)
+                    	forbiddenTerrains += MapModel.WATER;
+                    
+                    
+                    if (forbiddenTerrains.indexOf(ch) == -1) //Can we go there?
                     {
-                        Point paux = new Point(pc.lin + i, pc.col + j);
-                        pq.add(new Cell(paux, cell.cost + 1, cell));
+                    	
+                        
+                        Cell tempCell = new Cell(paux, cell.cost + 1, cell);
+                        tempCell.inBoat = inBoatNow;
+                        if(ch == MapModel.BOAT) tempCell.inBoat = true;
+                        else if( ch != MapModel.WATER && inBoatNow) tempCell.inBoat = false;
+                        pq.add(tempCell);
                         count++;
                     }
 
@@ -104,13 +125,19 @@ public class Planner{
                 break;
             }
             visited.add(pc);
+            char currentTerrain = mapModel.map(pc);
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++) {
                     if (i != 0 && j != 0) continue;
                     Point paux = new Point(pc.lin + i, pc.col + j);
                     if(visited.contains(paux)) continue;
+                    String forbiddenTerrains = "?"+ MapModel.WALL+MapModel.END;
+                    if(!mapModel.hasAxe())
+                    	forbiddenTerrains += MapModel.TREE;
                     char ch = mapModel.map(paux);
-                    if (ch != MapModel.WATER && ch != MapModel.WALL && ch != MapModel.TREE && ch != '?')
+                    if(currentTerrain != MapModel.WATER && currentTerrain != MapModel.BOAT)
+                    	forbiddenTerrains += MapModel.WATER;
+                    if (forbiddenTerrains.indexOf(ch) == -1) // Can we go there?
                     {
                     	//System.out.println(paux.toString()+" Tipo: " + ch);
                         queue.add(paux);
@@ -173,12 +200,14 @@ public class Planner{
 
     private class Cell {
         public int cost;
+        public boolean inBoat;
         public Point p;
         public Cell parent;
         public Cell(Point p, int cost, Cell parent) {
             this.cost = cost;
             this.p = p;
             this.parent = parent;
+            this.inBoat = false;
         }
 
         public Cell(Point p, int cost)
@@ -186,6 +215,13 @@ public class Planner{
             this.cost = cost;
             this.p = p;
             this.parent = this;
+            this.inBoat = false;
+        }
+        
+        @Override
+        public int hashCode() {
+           
+            return p.hashCode();
         }
 
     }
@@ -230,6 +266,8 @@ public class Planner{
                 for(int i = 0; i < difOrient; i++) cmd += "r";
             else cmd+= "l";
         }
+        
+        if(mapModel.map(p2) == MapModel.TREE) cmd += 'c';
 
         cmd += "f";
 

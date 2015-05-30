@@ -8,6 +8,7 @@ public class MapModel {
    final static int SOUTH  = 3;	
    
    final static char FLAT = ' ';
+   final static char END = '.';
    final static char WATER = '~';
    final static char WALL = '*';
    final static char TREE = 'T';
@@ -26,6 +27,7 @@ public class MapModel {
    private ArrayList<Point> listTNTs;
    private ArrayList<Point> listBoats;
    private ArrayList<Point> listAxes;
+   private ArrayList<Point> listNewTools; // Points of tools seen in last sight
    Point goldPos;
    
    
@@ -56,11 +58,15 @@ public class MapModel {
 	   listTNTs = new ArrayList<Point>();
 	   listBoats = new ArrayList<Point>();
 	   listAxes = new ArrayList<Point>();
+	   listNewTools = new ArrayList<Point>();
 	   goldPos = null;
 	   
 	   
 	   // We adopt the north as the start position direction
 	   dir = NORTH;
+	   
+	   
+	   
    }
    
    /* ********** PUBLIC SETTERS AND GETTERS ************ */
@@ -130,9 +136,19 @@ public class MapModel {
 		return hasGold;
 	}
 	
+	public boolean inBoat()
+	{
+		return inBoat;
+	}
+	
 	public Point home()
 	{
 		return new Point(79,79);
+	}
+	
+	public ArrayList<Point> newToolsList()
+	{
+		return listNewTools;
 	}
    
    
@@ -152,16 +168,18 @@ public class MapModel {
 	   
 	   //If this position was unknown, we may have
 	   //found something interesting (A tool or gold)
-	   
+	   Point p;
 	   if(map[lin][col] == '?')
 	   {
 		   switch(ch)
 		   {
 		   	case AXE:
-		   		listAxes.add(new Point(lin,col));
+		   		listAxes.add(p = new Point(lin,col));
+		   		listNewTools.add(p);
 		   		break;
 		   	case TNT:
-		   		listTNTs.add(new Point(lin,col));
+		   		listTNTs.add(p = new Point(lin,col));
+		   		listNewTools.add(p);
 		   		break;
 		   	case BOAT:
 		   		listBoats.add(new Point(lin,col));
@@ -234,6 +252,8 @@ public class MapModel {
 	   		view = rotateMatrixLeft(view);
 	   	break;
 	   }
+	   
+	   listNewTools.clear();
 	   
 	   for(int i = 0; i < 5; i++)
 		   for(int j = 0; j < 5; j++)

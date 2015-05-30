@@ -65,6 +65,7 @@ public class Agent {
       OutputStream out= null;
       Socket socket   = null;
       MapModel mapm = new MapModel();
+      LinkedList<Point> seenTools = new LinkedList<Point>();
       Planner planner = new Planner(mapm);
       Agent  agent    = new Agent();
       char   view[][] = new char[5][5];
@@ -110,13 +111,14 @@ public class Agent {
             mapm.updateMap( view );
             mapm.printMap();
             agent.print_view( view ); // COMMENT THIS OUT BEFORE SUBMISSION
+            seenTools.addAll(mapm.newToolsList());
             //if(goldPath.equals("")) action = agent.get_action( view );
             if(!goldPath.equals(""))
             {
                action = goldPath.charAt(0);
                goldPath = goldPath.substring(1);
                try{
-                  Thread.sleep(500);
+                  Thread.sleep(100);
                }catch(Exception e){System.out.println("bunda");}
             }
             else if(mapm.hasGold())
@@ -126,9 +128,25 @@ public class Agent {
             	goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos()));
             	if(goldPath.equals(""))
             	{
-            		System.out.println("Impossible map");
-            		System.exit(0);
+            		if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
+                    	System.out.println("Exploring!" + goldPath);
+            		else
+            		{System.out.println("Impossible map");
+            		System.exit(0);}
             	}
+            	else System.out.println("GOOOLD!");
+            }
+            else if(seenTools.size() != 0)
+            {
+            	String tempPath = "";
+            	System.out.println("Going to get a tool!");
+            	while(tempPath == "" && seenTools.size() != 0)
+            	{
+            		Point pTool = seenTools.removeLast();
+            		tempPath = planner.getStringPath(planner.astar(pTool));
+            	}
+            	goldPath = tempPath;
+            	
             }
             else if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
             	System.out.println("Exploring!" + goldPath);
