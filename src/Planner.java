@@ -14,15 +14,24 @@ public class Planner{
     public Planner(MapModel map){
         this.mapModel = map;
     }
-
+    
+    
     public LinkedList<Point> astar(Point p) {
+    	return astar(p,false);
+    }
+
+    public LinkedList<Point> astar(Point p, boolean useBombs) {
         CellComparator cmp = new CellComparator(p);
         PriorityQueue<Cell> pq = new PriorityQueue<Cell>(20, cmp);
-        HashSet<Point> visited = new HashSet<Point>();
+        HashSet<Cell> visited = new HashSet<Cell>();
         Point pAgent = mapModel.agentPos();
         Cell destCel = null;
         Cell aCell = new Cell(pAgent, 0);
+        aCell.hasAxe = mapModel.hasAxe();
+        aCell.iniBombs = mapModel.numberTNT();        		
         aCell.inBoat = mapModel.inBoat();
+        aCell.boats.addAll(mapModel.boatsList());
+        System.out.println("Starting bombs in A*:"+ aCell.bombs()  );
         pq.add(aCell);
         
         
@@ -35,17 +44,22 @@ public class Planner{
                 destCel = cell;
                 break;
             }
-            visited.add(pc);
+            //visited.add(cell);
             boolean inBoatNow = cell.inBoat;
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++) {
                     if (i != 0 && j != 0) continue;
                     Point paux = new Point(pc.lin + i, pc.col + j);
                     char ch = mapModel.map(pc.lin + i, pc.col + j);
-                    if(visited.contains(paux)) continue;
+                    if(ch == MapModel.BOAT && !cell.isBoat(paux))
+                    	ch = MapModel.WATER;
+                    else if(ch == MapModel.WATER && cell.isBoat(paux))
+                    	ch = MapModel.BOAT;
                     
-                    String forbiddenTerrains = "?"+ MapModel.WALL+MapModel.END;
-                    if(!mapModel.hasAxe())
+                    String forbiddenTerrains = "?"+ MapModel.END;
+                    if(!useBombs)
+                    	forbiddenTerrains += MapModel.WALL;
+                    if(!cell.hasAxe)
                     	forbiddenTerrains += MapModel.TREE;
                     if(!inBoatNow)
                     	forbiddenTerrains += MapModel.WATER;
@@ -53,13 +67,23 @@ public class Planner{
                     
                     if (forbiddenTerrains.indexOf(ch) == -1) //Can we go there?
                     {
-                    	
                         
                         Cell tempCell = new Cell(paux, cell.cost + 1, cell);
+                        if(visited.contains(tempCell)) continue;
+                        if(ch == MapModel.WALL && !tempCell.wallsDestroyed.contains(paux))
+                        { 
+                        	if(tempCell.bombs() > 0 /*&& !tempCell.wallsDestroyed.contains(paux)*/)
+                        		tempCell.useBomb(paux);
+                        	else continue;
+
+                        }
+                        else if(ch == MapModel.TNT && !tempCell.gotBomb(paux)) tempCell.getBomb(paux);
                         tempCell.inBoat = inBoatNow;
-                        if(ch == MapModel.BOAT) tempCell.inBoat = true;
-                        else if( ch != MapModel.WATER && inBoatNow) tempCell.inBoat = false;
+                        if(ch == MapModel.BOAT) tempCell.getInBoat(paux);
+                        else if( ch != MapModel.WATER && inBoatNow) tempCell.getOutBoat(pc);                        
+                        if(ch == MapModel.AXE) tempCell.hasAxe = true;
                         pq.add(tempCell);
+                        visited.add(tempCell);
                         count++;
                     }
 
@@ -71,22 +95,30 @@ public class Planner{
             System.out.println("It was not able to find a path!");
             return null;
         }
+        
+        if(destCel.bombs() < 0)
+        {
+        	int bombs = destCel.bombs()*-1;
+        	System.out.println("Path found needs additional bombs:" + bombs);
+        	return null;
+        }
+        else System.out.println ("A* bombs left:" + destCel.bombs());
 
         Stack<Point> stAux;
         LinkedList<Point> path;
         stAux = new Stack<Point>();
         path = new LinkedList<Point>();
         Cell auxCell = destCel;
-        //System.out.println("=====A*=====");
+        System.out.println("=====A*=====");
         stAux.push(destCel.p);
-       // System.out.println(destCel.p.toString() + "Tipo:" + mapModel.map(destCel.p));
+        System.out.println(destCel.p.toString() + "Tipo:" + mapModel.map(destCel.p));
         while (auxCell.parent != auxCell)
         {
             auxCell = auxCell.parent;
             stAux.push(auxCell.p);
-            //System.out.println(auxCell.p.toString() + "Tipo:" + mapModel.map(auxCell.p));
+            System.out.println(auxCell.p.toString() + "Tipo:" + mapModel.map(auxCell.p));
         }
-       // System.out.println("============");
+        System.out.println("============");
         while(!stAux.isEmpty()) path.add(stAux.pop());
 
         return path;
@@ -189,8 +221,8 @@ public class Planner{
             }
 
             Cell c1 = (Cell) o1; Cell c2 = (Cell) o2;
-            int w1 = c1.cost + h(c1.p, p);
-            int w2 = c2.cost + h(c2.p, p);
+            int w1 = c1.getTotalCost() + h(c1.p, p);
+            int w2 = c2.getTotalCost() + h(c2.p, p);
             // descending order (ascending order would be:
             // o1.getGrade()-o2.getGrade())
 
@@ -198,33 +230,7 @@ public class Planner{
         }
     }
 
-    private class Cell {
-        public int cost;
-        public boolean inBoat;
-        public Point p;
-        public Cell parent;
-        public Cell(Point p, int cost, Cell parent) {
-            this.cost = cost;
-            this.p = p;
-            this.parent = parent;
-            this.inBoat = false;
-        }
-
-        public Cell(Point p, int cost)
-        {
-            this.cost = cost;
-            this.p = p;
-            this.parent = this;
-            this.inBoat = false;
-        }
-        
-        @Override
-        public int hashCode() {
-           
-            return p.hashCode();
-        }
-
-    }
+    
 
 
     private int getOrientation(Point p1, Point p2)
@@ -268,6 +274,7 @@ public class Planner{
         }
         
         if(mapModel.map(p2) == MapModel.TREE) cmd += 'c';
+        if(mapModel.map(p2) == MapModel.WALL) cmd += 'b';
 
         cmd += "f";
 

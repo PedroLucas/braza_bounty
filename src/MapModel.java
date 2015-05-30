@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 
 public class MapModel {
@@ -27,7 +28,8 @@ public class MapModel {
    private ArrayList<Point> listTNTs;
    private ArrayList<Point> listBoats;
    private ArrayList<Point> listAxes;
-   private ArrayList<Point> listNewTools; // Points of tools seen in last sight
+   private ArrayList<Point> listNewTools; // Points of new tools seen in last sight
+   private ArrayList<Point> listSeenTools; // Points of tools seen in last sight
    Point goldPos;
    
    
@@ -59,6 +61,7 @@ public class MapModel {
 	   listBoats = new ArrayList<Point>();
 	   listAxes = new ArrayList<Point>();
 	   listNewTools = new ArrayList<Point>();
+	   listSeenTools= new ArrayList<Point>();
 	   goldPos = null;
 	   
 	   
@@ -150,6 +153,27 @@ public class MapModel {
 	{
 		return listNewTools;
 	}
+	
+	public ArrayList<Point> boatsList()
+	{
+		return listBoats;
+	}
+	
+	public ArrayList<Point> seenToolsList()
+	{
+		return listSeenTools;
+	}
+	
+	public LinkedList<Point> getAllTools()
+	{
+		LinkedList<Point> tools = new LinkedList<Point>();
+		tools.addAll(this.listAxes);
+		tools.addAll(this.listTNTs);
+		
+		
+		return tools;
+		
+	}
    
    
    /*****************************************************/
@@ -165,6 +189,12 @@ public class MapModel {
 	   if(col < minCol) minCol = col;
 	   if(lin > maxLin) maxLin = lin;
 	   if(col > maxCol) maxCol = col;
+	   
+	   
+	   
+	   if(ch == AXE || ch == TNT)
+		   listSeenTools.add(new Point(lin,col));
+	   
 	   
 	   //If this position was unknown, we may have
 	   //found something interesting (A tool or gold)
@@ -254,6 +284,7 @@ public class MapModel {
 	   }
 	   
 	   listNewTools.clear();
+	   listSeenTools.clear();
 	   
 	   for(int i = 0; i < 5; i++)
 		   for(int j = 0; j < 5; j++)
@@ -309,6 +340,7 @@ public class MapModel {
 		break;
 		
 		case 'B':
+		case 'b':
 			if(numberTNT > 0) numberTNT--;
 			break;
 	   }
@@ -332,7 +364,7 @@ public class MapModel {
 	   if(ch != WALL && ch != TREE && ch != WATER && inBoat)
 	   {
 		   inBoat = false;
-		   listBoats.add(new Point(nextLin,nextCol));
+		   listBoats.add(new Point(lin,col));
 	   }
 	   else if(ch == BOAT && !inBoat)
 	   {
@@ -342,11 +374,13 @@ public class MapModel {
 	   else if(ch == AXE)
 	   {		   
 		   hasAxe = true;
+		   this.setPos(nextLin, nextCol, FLAT);
 		   listAxes.remove(new Point(nextLin,nextCol));
 	   }
 	   else if(ch == TNT)
 	   {
 		   numberTNT++;
+		   this.setPos(nextLin, nextCol, FLAT);
 		   listTNTs.remove(new Point(nextLin,nextCol)); 
 	   }
 	   else if(ch == GOLD) hasGold = true;

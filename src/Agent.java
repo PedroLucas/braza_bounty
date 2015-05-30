@@ -38,6 +38,8 @@ public class Agent {
 
       return 0;
    }
+   
+ 
 
    void print_view( char view[][] )
    {
@@ -58,6 +60,56 @@ public class Agent {
       }
       System.out.println("+-----+");
    }
+   
+   
+   /* ************** My functions************* */
+   
+   
+   
+   static String getTool(LinkedList<Point> seenTools, Planner planner)
+   {
+	   	String tempPath = "";
+	   	System.out.println("Going to get a tool!");
+	   	while(tempPath == "" && seenTools.size() != 0)
+	   	{
+	   		Point pTool = seenTools.removeLast();
+	   		tempPath = planner.getStringPath(planner.astar(pTool));
+	   	}
+	   	return tempPath;
+   }
+   
+   
+   static String tryGetGold(MapModel mapm, Planner planner)
+   {
+	   String goldPath;
+	   LinkedList<Point> seenTools = mapm.getAllTools();
+		if(false && !(goldPath = getTool(seenTools, planner)).equals(""))
+			System.out.println("Tools!");
+		else{
+	   		System.out.println("Try Gold!");
+	       	goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos(), true	));
+	       	if(goldPath.equals(""))
+	       	{
+	       		
+	       		if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
+	               	System.out.println("Exploring!" + goldPath);
+	       		else if((goldPath = getTool(seenTools, planner)).equals(""))
+	       		{System.out.println("Impossible map");
+	       		System.exit(0);}            		
+	       		else System.out.println("Tools!");
+	       		
+	       	}
+	       	else System.out.println("GOOOLD!" + goldPath);
+		}
+		return goldPath;
+   }
+   
+   
+    
+   /* ****************************************** */
+   
+   
+   
 
    public static void main( String[] args )
    {
@@ -94,7 +146,7 @@ public class Agent {
 
       String goldPath = "";
 
-      try { // scan 5-by-5 wintow around current location
+      try { // scan 5-by-5 window around current location
          while( true ) {
             for( i=0; i < 5; i++ ) {
                for( j=0; j < 5; j++ ) {
@@ -111,46 +163,34 @@ public class Agent {
             mapm.updateMap( view );
             mapm.printMap();
             agent.print_view( view ); // COMMENT THIS OUT BEFORE SUBMISSION
-            seenTools.addAll(mapm.newToolsList());
-            //if(goldPath.equals("")) action = agent.get_action( view );
+            seenTools.addAll(mapm.seenToolsList());
             if(!goldPath.equals(""))
             {
                action = goldPath.charAt(0);
                goldPath = goldPath.substring(1);
-               try{
+               /*try{
                   Thread.sleep(100);
-               }catch(Exception e){System.out.println("bunda");}
+               }catch(Exception e){System.out.println("bunda");}*/
             }
             else if(mapm.hasGold())
             	goldPath = planner.goHome();
-            else if(mapm.sawGold())
-            {
-            	goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos()));
-            	if(goldPath.equals(""))
-            	{
-            		if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
-                    	System.out.println("Exploring!" + goldPath);
-            		else
-            		{System.out.println("Impossible map");
-            		System.exit(0);}
+            else if(seenTools.size() != 0){
+            	if((goldPath = getTool(seenTools, planner)).equals("")){
+		            if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
+		            	System.out.println("Exploring!" + goldPath);
+		            else if(mapm.sawGold())
+		            {
+		            	goldPath = tryGetGold(mapm, planner);
+		            }
             	}
-            	else System.out.println("GOOOLD!");
-            }
-            else if(seenTools.size() != 0)
-            {
-            	String tempPath = "";
-            	System.out.println("Going to get a tool!");
-            	while(tempPath == "" && seenTools.size() != 0)
-            	{
-            		Point pTool = seenTools.removeLast();
-            		tempPath = planner.getStringPath(planner.astar(pTool));
-            	}
-            	goldPath = tempPath;
-            	
+            	else System.out.println("TOOOOOOOOOOOOOOOLS");
             }
             else if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
             	System.out.println("Exploring!" + goldPath);
-
+            else if(mapm.sawGold())
+            {
+            	goldPath = tryGetGold(mapm, planner);
+            }      
             mapm.doAction( action );
             out.write( action );
          }
@@ -160,6 +200,7 @@ public class Agent {
          System.exit(-1);
       }
       finally {
+    	  
          try {
             socket.close();
          }
