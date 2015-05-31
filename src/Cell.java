@@ -1,3 +1,4 @@
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -12,7 +13,9 @@ public class Cell {
 	public int bombsUsed;
 	public boolean inBoat;
 	public boolean hasAxe;
-	HashSet<Point> wallsDestroyed;
+	BitSet wallsDestroyedBits;
+	int nWallsDestroyed;
+	//HashSet<Point> wallsDestroyed;
 	HashSet<Point> bombsCaught;
 	HashSet <Point> boats;
 	
@@ -21,13 +24,14 @@ public class Cell {
 	public Cell(Point p, int cost, Cell parent) {            
 		this(p,cost);
 		this.parent = parent;
-		wallsDestroyed = (HashSet<Point>) parent.wallsDestroyed.clone();
+		wallsDestroyedBits = (BitSet) parent.wallsDestroyedBits.clone();
 		bombsCaught = (HashSet<Point>) parent.bombsCaught.clone();
 		boats = (HashSet<Point>) parent.boats.clone();
 		this.inBoat = parent.inBoat;
 		this.hasAxe = parent.hasAxe;
 		this.iniBombs = parent.iniBombs;
 		this.bombsUsed = parent.bombsUsed;
+		this.nWallsDestroyed = parent.nWallsDestroyed;
 		
 	}
 	
@@ -39,9 +43,12 @@ public class Cell {
 	    this.hasAxe = this.inBoat = false;
 	    this.iniBombs = 0;
 	    this.bombsUsed = 0;
-	    wallsDestroyed = new HashSet<Point>();
+	    
+	    wallsDestroyedBits = new BitSet(6400);
+	    wallsDestroyedBits.clear();
 	    bombsCaught = new HashSet<Point>();
 	    boats = new HashSet<Point>();
+	    this.nWallsDestroyed = 0;
 	}
 	
 	 @Override
@@ -57,14 +64,17 @@ public class Cell {
 	        }
 	        
 	        Cell c = (Cell) o;
-	        if(this.wallsDestroyed.size() != c.wallsDestroyed.size()) return false;
-	        else
+	        BitSet tempBits = (BitSet) wallsDestroyedBits.clone();
+	        tempBits.xor(c.wallsDestroyedBits);
+	        if(!tempBits.isEmpty()) return false;
+	        
+	      /*  else
 	        {
 	        	Iterator<Point> iterator = this.wallsDestroyed.iterator(); 
 	        	while (iterator.hasNext())
 	        		if(!c.wallsDestroyed.contains(iterator.next())) return false;	    	        
 	        	
-	        }
+	        }*/
 
 	        
 	        
@@ -85,12 +95,14 @@ public class Cell {
 		int axe = hasAxe? 1 : 0;
 		int boat = inBoat? 1 : 0;
 	   
-	    return ((51 + this.bombs())*51 + axe + boat )*51 + p.hashCode();
+	    return ((51 + this.bombs())*51 + axe + boat )*51 + p.hashCode() + wallsDestroyedBits.hashCode();
 	}
 	
 	public void useBomb(Point p)
 	{
-		wallsDestroyed.add(p);
+		
+		wallsDestroyedBits.set(p.lin*80 + p.col);
+		nWallsDestroyed++;
 		bombsUsed++;
 	}
 	
@@ -101,17 +113,18 @@ public class Cell {
 	
 	public void destroyWall(Point p)
 	{
-		wallsDestroyed.add(p);
+		wallsDestroyedBits.set(p.lin*80 + p.col);
+		nWallsDestroyed++;
 	}
 	
 	public boolean isWallDestroyed(Point p)
 	{
-		return wallsDestroyed.contains(p);
+		return wallsDestroyedBits.get(p.lin*80 + p.col);
 	}
 	
 	public int getTotalCost()
 	{
-		return (wallsDestroyed.size() - this.bombs())*wallCost + cost -bombsCaught.size()*100;
+		return (nWallsDestroyed - this.bombs())*wallCost + cost -bombsCaught.size()*100;
 	}
 	
 	public void getBomb(Point p)

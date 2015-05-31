@@ -1,7 +1,9 @@
 import java.awt.*;
 import java.lang.String;
 import java.lang.System;
+import java.util.BitSet;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Stack;
 import java.util.LinkedList;
@@ -22,6 +24,7 @@ public class Planner{
 
     public LinkedList<Point> astar(Point p, boolean useBombs) {
         CellComparator cmp = new CellComparator(p);
+        BitSet uselessWalls = null;
         PriorityQueue<Cell> pq = new PriorityQueue<Cell>(20, cmp);
         HashSet<Cell> visited = new HashSet<Cell>();
         Point pAgent = mapModel.agentPos();
@@ -33,6 +36,11 @@ public class Planner{
         aCell.boats.addAll(mapModel.boatsList());
         System.out.println("Starting bombs in A*:"+ aCell.bombs()  );
         pq.add(aCell);
+        
+        if(useBombs)
+        	uselessWalls = uselessWalls();
+
+        
         
         
         int count = 0;
@@ -70,9 +78,9 @@ public class Planner{
                         
                         Cell tempCell = new Cell(paux, cell.cost + 1, cell);
                         
-                        if(ch == MapModel.WALL && !tempCell.wallsDestroyed.contains(paux))
+                        if(ch == MapModel.WALL && !tempCell.isWallDestroyed(paux))
                         { 
-                        	if(tempCell.bombs() > 0 /*&& !tempCell.wallsDestroyed.contains(paux)*/)
+                        	if(tempCell.bombs() > 0 && useBombs && !getBit(uselessWalls, paux))
                         		tempCell.useBomb(paux);
                         	else continue;
 
@@ -179,11 +187,12 @@ public class Planner{
                         queue.add(paux);
                         visited.add(paux);
                     }
+                    else System.out.println("Culpa dessa puta:" + ch);
 
                 }
         }
         if (destP == null) {
-            System.out.println("It was not able to find more room to explore");
+            System.out.println("It was not able to find more room to explore!!!");
             return null;
         }
         System.out.println("Terminou! agora Astar");
@@ -301,6 +310,163 @@ public class Planner{
             p1 = p2;
         }
         return cmd;
+    }
+    
+    
+    private BitSet uselessWalls()
+    {
+    	System.out.println("Looking for useless walls");
+    	BitSet uselessWallsBits = new BitSet(6400);
+    	uselessWallsBits.clear();
+    	BitSet reachableBits = reachableTiles();
+    	HashSet<Point> visited = new HashSet<Point>();
+    	HashSet<Point> tempVisited = new HashSet<Point>();
+    	String expandTiles = ""+MapModel.WALL;
+		if(!mapModel.hasAxe())
+			expandTiles += MapModel.TREE;
+    	for(int lin = 0; lin < 80; lin++)
+    		for(int col = 0; col < 80; col++)
+    		{
+    			tempVisited.clear();
+    			Point paux = new Point(lin,col);
+    			char ch = mapModel.map(paux);
+    			if(expandTiles.indexOf(ch) == -1 && !visited.contains(paux))
+    			{
+    				boolean useful = bfsUseful(paux, reachableBits, tempVisited);
+    				if(!useful)
+    				{
+    					Iterator<Point> it = tempVisited.iterator();
+    					while(it.hasNext())
+    						setBit(uselessWallsBits, it.next());
+    				}
+    				visited.addAll(tempVisited);
+    			}			
+    			
+    		}
+    	
+    	System.out.println("FINISHED Looking for useless walls");
+    	
+    	
+    	
+    	
+    	return uselessWallsBits;
+    	
+       
+    }
+    
+    private boolean bfsUseful(Point p, BitSet reachableBits,HashSet<Point> visited)
+    {
+    	/*
+    	if(visited.contains(p)) return false;
+    	visited.add(p);
+    	
+    	boolean useful = false;
+    	for(int lin = -1; lin < 1; lin++)
+    		for(int col = -1; col < 1; col++)
+    			if(col == 0 || lin == 0)
+    			{
+    				Point paux = new Point(p.lin + lin, p.col + col);
+    				char ch = mapModel.map(paux);
+    				String expandTiles = ""+MapModel.WALL;
+    				if(!mapModel.hasAxe())
+    					expandTiles += MapModel.TREE;
+    				if(expandTiles.indexOf(ch) == -1){
+	    				boolean dfsR = dfsUseful(paux, reachableBits,
+	    										visited);
+	    				
+	    				useful = useful || dfsR;
+	    			break;
+    				}
+    				else useful = useful || !getBit(reachableBits,paux); 					
+    				
+    			}
+    	
+    	
+    	
+    	return useful;*/
+    	
+    
+    	LinkedList<Point> queue = new LinkedList<Point>();
+        queue.add(p);
+        boolean useful = false;
+        
+        while (!queue.isEmpty()) {
+            Point pc = queue.remove();
+            for (int i = -1; i <= 1; i++)
+                for (int j = -1; j <= 1; j++) {
+                    if (i != 0 && j != 0) continue;
+                    Point paux = new Point(p.lin + i, p.col + j);
+                    if(visited.contains(paux)) continue;
+    				char ch = mapModel.map(paux);
+    				String expandTiles = ""+MapModel.WALL;
+    				if(!mapModel.hasAxe())
+    					expandTiles += MapModel.TREE;
+    				if(expandTiles.indexOf(ch) != -1){
+	    				queue.add(paux);
+	    				visited.add(paux);
+    				}
+    				else
+    					if(ch != MapModel.END) 
+    						useful = useful || !getBit(reachableBits,paux); 	
+
+                }
+        }
+        
+        return useful;
+    	
+    }
+    
+    
+    
+    private void setBit(BitSet bits, Point p)
+    {
+    	bits.set(p.lin*80 + p.col);
+    }
+    
+    private boolean getBit(BitSet bits, Point p)
+    {
+    	return bits.get(p.lin*80 + p.col);
+    }
+    
+    private BitSet reachableTiles()
+    {
+    	BitSet bitsReachable = new BitSet(6400);
+    	bitsReachable.clear();
+    	LinkedList<Point> queue = new LinkedList<Point>();
+        HashSet<Point> visited = new HashSet<Point>();
+        Point pAgent = mapModel.agentPos();
+        visited.add(pAgent);
+        Point destP = null;
+        queue.add(pAgent);
+        
+        while (!queue.isEmpty()) {
+            Point pc = queue.remove();
+            //  reachable
+            setBit(bitsReachable, pc);
+            char currentTerrain = mapModel.map(pc);
+            for (int i = -1; i <= 1; i++)
+                for (int j = -1; j <= 1; j++) {
+                    if (i != 0 && j != 0) continue;
+                    Point paux = new Point(pc.lin + i, pc.col + j);
+                    if(visited.contains(paux)) continue;
+                    String forbiddenTerrains = "?"+ MapModel.WALL+MapModel.END;
+                    if(!mapModel.hasAxe())
+                    	forbiddenTerrains += MapModel.TREE;
+                    char ch = mapModel.map(paux);
+                    if(currentTerrain != MapModel.WATER && currentTerrain != MapModel.BOAT)
+                    	forbiddenTerrains += MapModel.WATER;
+                    if (forbiddenTerrains.indexOf(ch) == -1) // Can we go there?
+                    {
+                    	//System.out.println(paux.toString()+" Tipo: " + ch);
+                        queue.add(paux);
+                        visited.add(paux);
+                    }
+
+                }
+        }
+        
+        
+       return bitsReachable;
     }
 
 

@@ -76,11 +76,13 @@ public class MapModel {
    
    public char map(int l, int c)
    {
+	   if(l > 159 || c > 159 || l < 0 || c < 0) return END;
 	   return map[l][c];
    }
    
    public char map(Point p)
    {
+	   
 	   return this.map(p.lin, p.col);
 
    }
