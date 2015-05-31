@@ -85,11 +85,13 @@ public class Planner{
                         if(visited.contains(tempCell)) continue;
                         pq.add(tempCell);
                         visited.add(tempCell);
-                        //System.out.println("A* point expanded:" + paux );
+                        System.out.println("A* point expanded:" + paux + ch);
                         count++;
                     }
 
                 }
+
+            System.out.println("Estados a-star: " + count);
         }
         System.out.println("A* states:"+count);
         
@@ -158,7 +160,7 @@ public class Planner{
                 destP = pc;
                 break;
             }
-            visited.add(pc);
+//            visited.add(pc);
             char currentTerrain = mapModel.map(pc);
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++) {
@@ -175,6 +177,7 @@ public class Planner{
                     {
                     	//System.out.println(paux.toString()+" Tipo: " + ch);
                         queue.add(paux);
+                        visited.add(paux);
                     }
 
                 }
@@ -183,7 +186,7 @@ public class Planner{
             System.out.println("It was not able to find more room to explore");
             return null;
         }
-
+        System.out.println("Terminou! agora Astar");
         
         return astar(destP);
 

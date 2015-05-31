@@ -178,11 +178,13 @@ public class Agent {
             	goldPath = planner.goHome();
             else if(seenTools.size() != 0){
             	if((goldPath = getTool(seenTools, planner)).equals("")){
+                   System.out.println("Foeee");
 		            if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
 		            	System.out.println("Exploring!" + goldPath);
 		            else if(mapm.sawGold())
 		            {
-		            	goldPath = tryGetGold(mapm, planner);
+                       System.out.println("Vendo ouroo");
+                       goldPath = tryGetGold(mapm, planner);
 		            }
             	}
             	else System.out.println("TOOOOOOOOOOOOOOOLS");
