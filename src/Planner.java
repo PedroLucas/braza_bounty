@@ -1,11 +1,6 @@
-import java.awt.*;
-import java.lang.Exception;
 import java.lang.String;
 import java.lang.System;
-import java.lang.Thread;
-import java.util.BitSet;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Stack;
 import java.util.LinkedList;
@@ -21,12 +16,11 @@ public class Planner{
     
     
     public LinkedList<Point> astar(Point p) {
-    	return astar(p,false);
+    	return astar(p,false,false);
     }
 
-    public LinkedList<Point> astar(Point p, boolean useBombs) {
+    public LinkedList<Point> astar(Point p, boolean useBombs, boolean useWallHistory) {
         CellComparator cmp = new CellComparator(p);
-        BitSet uselessWalls = null;
         PriorityQueue<Cell> pq = new PriorityQueue<Cell>(20, cmp);
         HashSet<Cell> visited = new HashSet<Cell>();
         Point pAgent = mapModel.agentPos();
@@ -36,16 +30,9 @@ public class Planner{
         aCell.iniBombs = mapModel.numberTNT();        		
         aCell.inBoat = mapModel.inBoat();
         aCell.boats.addAll(mapModel.boatsList());
+        aCell.useWallHistory = useWallHistory;
         System.out.println("Starting bombs in A*:"+ aCell.bombs()  );
-        pq.add(aCell);
-        
-        if(useBombs) {
-            uselessWalls = uselessWalls();
-            mapModel.printMap(uselessWalls);
-           // try{Thread.sleep(10000);}catch(Exception e){};
-        }
-        
-        
+        pq.add(aCell);        
         
         int count = 0;
         
@@ -71,7 +58,7 @@ public class Planner{
                     String forbiddenTerrains = "?"+ MapModel.END;
                     if(!useBombs)
                     	forbiddenTerrains += MapModel.WALL;
-                    if(!cell.hasAxe)
+                    if(!cell.hasAxe && !useBombs )
                     	forbiddenTerrains += MapModel.TREE;
                     if(!inBoatNow)
                     	forbiddenTerrains += MapModel.WATER;
@@ -84,10 +71,15 @@ public class Planner{
                         
                         if(ch == MapModel.WALL && !tempCell.isWallDestroyed(paux))
                         { 
-                        	if(tempCell.bombs() > 0 && useBombs)// && !getBit(uselessWalls, paux))
+                        	if(tempCell.bombs() > 0 && useBombs)
                         		tempCell.useBomb(paux);
                         	else continue;
-
+                        }
+                        if(ch == MapModel.TREE && !cell.hasAxe && !tempCell.isWallDestroyed(paux))
+                        { 
+                        	if(tempCell.bombs() > 0 && useBombs)
+                        		tempCell.useBomb(paux);
+                        	else continue;
                         }
                         else if(ch == MapModel.TNT && !tempCell.gotBomb(paux)) tempCell.getBomb(paux);
                         tempCell.inBoat = inBoatNow;
@@ -103,7 +95,6 @@ public class Planner{
 
                 }
 
-            System.out.println("Estados a-star: " + count);
         }
         System.out.println("A* states:"+count);
         
@@ -168,11 +159,9 @@ public class Planner{
         while (!queue.isEmpty()) {
             Point pc = queue.remove();
             if (addsVisibility(pc)) {
-            	//System.out.println("DESTINO:"+pc.toString()+" Tipo: " + mapModel.map(pc));
                 destP = pc;
                 break;
             }
-//            visited.add(pc);
             char currentTerrain = mapModel.map(pc);
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++) {
@@ -255,7 +244,6 @@ public class Planner{
     {
         int dLin = (p1.lin - p2.lin);
         int dCol = (p1.col - p2.col);
-       // System.out.println("("+p1.lin+","+p1.col+")->("+p2.lin+","+p2.col+")");
         if(dLin == 1)
             return MapModel.NORTH;
         else if(dLin == -1)
@@ -291,7 +279,8 @@ public class Planner{
             else cmd+= "l";
         }
         
-        if(mapModel.map(p2) == MapModel.TREE) cmd += 'c';
+        if(mapModel.map(p2) == MapModel.TREE && mapModel.hasAxe()) cmd += 'c';
+        if(mapModel.map(p2) == MapModel.TREE && !mapModel.hasAxe()) cmd += 'b';
         if(mapModel.map(p2) == MapModel.WALL) cmd += 'b';
 
         cmd += "f";
@@ -316,162 +305,4 @@ public class Planner{
         return cmd;
     }
     
-    
-    private BitSet uselessWalls()
-    {
-    	System.out.println("Looking for useless walls");
-    	BitSet uselessWallsBits = new BitSet(6400);
-    	uselessWallsBits.clear();
-    	BitSet reachableBits = reachableTiles();
-    	HashSet<Point> visited = new HashSet<Point>();
-    	HashSet<Point> tempVisited = new HashSet<Point>();
-    	String expandTiles = ""+MapModel.WALL;
-//		if(!mapModel.hasAxe())
-//			expandTiles += MapModel.TREE;
-    	for(int lin = 0; lin < 80; lin++)
-    		for(int col = 0; col < 80; col++)
-    		{
-    			tempVisited.clear();
-    			Point paux = new Point(lin,col);
-    			char ch = mapModel.map(paux);
-    			if(expandTiles.indexOf(ch) == -1 && !visited.contains(paux))
-    			{
-    				boolean useful = bfsUseful(paux, reachableBits, tempVisited);
-    				if(!useful)
-    				{
-    					Iterator<Point> it = tempVisited.iterator();
-    					while(it.hasNext())
-    						setBit(uselessWallsBits, it.next());
-    				}
-    				visited.addAll(tempVisited);
-    			}			
-    			
-    		}
-    	
-    	System.out.println("FINISHED Looking for useless walls");
-    	
-    	
-    	
-    	
-    	return uselessWallsBits;
-    	
-       
-    }
-    
-    private boolean bfsUseful(Point p, BitSet reachableBits,HashSet<Point> visited)
-    {
-    	/*
-    	if(visited.contains(p)) return false;
-    	visited.add(p);
-    	
-    	boolean useful = false;
-    	for(int lin = -1; lin < 1; lin++)
-    		for(int col = -1; col < 1; col++)
-    			if(col == 0 || lin == 0)
-    			{
-    				Point paux = new Point(p.lin + lin, p.col + col);
-    				char ch = mapModel.map(paux);
-    				String expandTiles = ""+MapModel.WALL;
-    				if(!mapModel.hasAxe())
-    					expandTiles += MapModel.TREE;
-    				if(expandTiles.indexOf(ch) == -1){
-	    				boolean dfsR = dfsUseful(paux, reachableBits,
-	    										visited);
-	    				
-	    				useful = useful || dfsR;
-	    			break;
-    				}
-    				else useful = useful || !getBit(reachableBits,paux); 					
-    				
-    			}
-    	
-    	
-    	
-    	return useful;*/
-    	
-    
-    	LinkedList<Point> queue = new LinkedList<Point>();
-        queue.add(p);
-        boolean useful = false;
-        
-        while (!queue.isEmpty()) {
-            Point pc = queue.remove();
-            for (int i = -1; i <= 1; i++)
-                for (int j = -1; j <= 1; j++) {
-                    if (i != 0 && j != 0) continue;
-                    Point paux = new Point(p.lin + i, p.col + j);
-                    if(visited.contains(paux)) continue;
-    				char ch = mapModel.map(paux);
-    				String expandTiles = ""+MapModel.WALL;
-//    				if(!mapModel.hasAxe())
-//    					expandTiles += MapModel.TREE;
-    				if(expandTiles.indexOf(ch) != -1){
-	    				queue.add(paux);
-	    				visited.add(paux);
-    				}
-    				else
-    					if(ch != MapModel.END) 
-    						useful = useful || !getBit(reachableBits,paux); 	
-
-                }
-        }
-        
-        return useful;
-    	
-    }
-    
-    
-    
-    private void setBit(BitSet bits, Point p)
-    {
-    	bits.set(p.lin * 80 + p.col);
-    }
-    
-    private boolean getBit(BitSet bits, Point p)
-    {
-    	return bits.get(p.lin*80 + p.col);
-    }
-    
-    private BitSet reachableTiles()
-    {
-    	BitSet bitsReachable = new BitSet(6400);
-    	bitsReachable.clear();
-    	LinkedList<Point> queue = new LinkedList<Point>();
-        HashSet<Point> visited = new HashSet<Point>();
-        Point pAgent = mapModel.agentPos();
-        visited.add(pAgent);
-        Point destP = null;
-        queue.add(pAgent);
-        
-        while (!queue.isEmpty()) {
-            Point pc = queue.remove();
-            //  reachable
-            setBit(bitsReachable, pc);
-            char currentTerrain = mapModel.map(pc);
-            for (int i = -1; i <= 1; i++)
-                for (int j = -1; j <= 1; j++) {
-                    if (i != 0 && j != 0) continue;
-                    Point paux = new Point(pc.lin + i, pc.col + j);
-                    if(visited.contains(paux)) continue;
-                    String forbiddenTerrains = "?"+ MapModel.WALL+MapModel.END;
-                    if(!mapModel.hasAxe())
-                    	forbiddenTerrains += MapModel.TREE;
-                    char ch = mapModel.map(paux);
-                    if(currentTerrain != MapModel.WATER && currentTerrain != MapModel.BOAT)
-                    	forbiddenTerrains += MapModel.WATER;
-                    if (forbiddenTerrains.indexOf(ch) == -1) // Can we go there?
-                    {
-                    	//System.out.println(paux.toString()+" Tipo: " + ch);
-                        queue.add(paux);
-                        visited.add(paux);
-                    }
-
-                }
-        }
-        
-        
-       return bitsReachable;
-    }
-
-
 }

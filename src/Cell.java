@@ -13,6 +13,7 @@ public class Cell {
 	public int bombsUsed;
 	public boolean inBoat;
 	public boolean hasAxe;
+	public boolean useWallHistory;
 	BitSet wallsDestroyedBits;
 	int nWallsDestroyed;
 	//HashSet<Point> wallsDestroyed;
@@ -32,6 +33,7 @@ public class Cell {
 		this.iniBombs = parent.iniBombs;
 		this.bombsUsed = parent.bombsUsed;
 		this.nWallsDestroyed = parent.nWallsDestroyed;
+		this.useWallHistory = parent.useWallHistory;
 		
 	}
 	
@@ -49,6 +51,7 @@ public class Cell {
 	    bombsCaught = new HashSet<Point>();
 	    boats = new HashSet<Point>();
 	    this.nWallsDestroyed = 0;
+	    this.useWallHistory = false;
 	}
 	
 	 @Override
@@ -63,23 +66,17 @@ public class Cell {
 	            return false;
 	        }
 	        
+	        
 	        Cell c = (Cell) o;
-//	        BitSet tempBits = (BitSet) wallsDestroyedBits.clone();
-//	        tempBits.xor(c.wallsDestroyedBits);
-//	        if(!tempBits.isEmpty()) return false;
-//
-	      /*  else
-	        {
-	        	Iterator<Point> iterator = this.wallsDestroyed.iterator(); 
-	        	while (iterator.hasNext())
-	        		if(!c.wallsDestroyed.contains(iterator.next())) return false;	    	        
-	        	
-	        }*/
+	        if(this.useWallHistory){
+		        BitSet tempBits = (BitSet) wallsDestroyedBits.clone();
+		        tempBits.xor(c.wallsDestroyedBits);
+		        if(!tempBits.isEmpty()) return false;
+	        }
 
+	            
 	        
-	        
-	        
-	        // check values
+	       
 	        
 	        
 	        

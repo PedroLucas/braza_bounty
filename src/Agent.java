@@ -85,23 +85,20 @@ public class Agent {
    {
 	   String goldPath;
 	   LinkedList<Point> seenTools = mapm.getAllTools();
-		if(false && !(goldPath = getTool(seenTools, planner)).equals(""))
-			System.out.println("Tools!");
-		else{
-	   		System.out.println("Try Gold!");
-	       	goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos(), true	));
+		goldPath = getTool(seenTools, planner);
+		if(goldPath.equals("")){
+	       	goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos(), true,false));
 	       	if(goldPath.equals(""))
 	       	{
 	       		
-	       		if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
-	               	System.out.println("Exploring!" + goldPath);
-	       		else if((goldPath = getTool(seenTools, planner)).equals(""))
+	       		goldPath = planner.getStringPath(planner.explore());
+	       		if(goldPath.equals(""))
+	       			goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos(), true,true) );
+	       		if(goldPath.equals(""))
 	       		{System.out.println("Impossible map");
 	       		System.exit(0);}            		
-	       		else System.out.println("Tools!");
 	       		
 	       	}
-	       	else System.out.println("GOOOLD!" + goldPath);
 		}
 		return goldPath;
    }
@@ -183,11 +180,9 @@ public class Agent {
 		            	System.out.println("Exploring!" + goldPath);
 		            else if(mapm.sawGold())
 		            {
-                       System.out.println("Vendo ouroo");
                        goldPath = tryGetGold(mapm, planner);
 		            }
             	}
-            	else System.out.println("TOOOOOOOOOOOOOOOLS");
             }
             else if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
             	System.out.println("Exploring!" + goldPath);
