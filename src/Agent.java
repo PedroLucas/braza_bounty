@@ -3,6 +3,25 @@
  *  Sample Agent for Text-Based Adventure Game
  *  COMP3411 Artificial Intelligence
  *  UNSW Session 1, 2012
+ *  
+ * 	To solve this problem only planning algorithms were used, and
+ * a map model, constructed as the agent moves around. For the
+ * map exploration, the agent uses a BFS to look for a near-by place
+ * to explore, and then uses a simple a-star search to find a path
+ * to that place. In the main routine we have a ordering of our
+ * priorities, which is:
+ * - Get near tools
+ * - Explore map until there is no way to explore more
+ * - Try to get gold
+ * 
+ * 	For the a-star search we have the class Cell, that represents
+ * the state of the search in, which includes which walls were broken
+ * during the path, number of bombs used, etc. In that way, the a-star avoids
+ * going to the same tile if it doesn't have any new tools or improvements,
+ * but in the case of new tools, the astar can visit that point again, allowing
+ * a powerful planning ability. More information in the a-star's comment.
+ *  
+ * 
  */
 
 import java.lang.Exception;
@@ -65,21 +84,30 @@ public class Agent {
    /* ************** My functions************* */
    
    
-   
+   /**
+    * @param seenTools -List of tools seen by agent
+    * @param planner -Planner objects of the agent
+    * @return -Path to a tool in seenTools
+    */
    static String getTool(LinkedList<Point> seenTools, Planner planner)
    {
 	   	String tempPath = "";
 	   	System.out.println("Going to get a tool!");
 	   	while(tempPath == "" && seenTools.size() != 0)
 	   	{
-	   		System.out.println("Penis");
 	   		Point pTool = seenTools.removeLast();
 	   		tempPath = planner.getStringPath(planner.astar(pTool));
-	   		System.out.println("Fim--------------------Penis");
 	   	}
 	   	return tempPath;
    }
    
+   /**
+    *  Try to get gold, following a specific ordering of actions in a way to
+    *  exhaust the options to get gold
+    * @param mapm
+    * @param planner
+    * @return
+    */
    
    static String tryGetGold(MapModel mapm, Planner planner)
    {
@@ -87,16 +115,17 @@ public class Agent {
 	   LinkedList<Point> seenTools = mapm.getAllTools();
 		goldPath = getTool(seenTools, planner);
 		if(goldPath.equals("")){
+			//Light search
 	       	goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos(), true,false));
 	       	if(goldPath.equals(""))
 	       	{
-	       		
+	       		//Is there somewhere we didn't explore?
 	       		goldPath = planner.getStringPath(planner.explore());
 	       		if(goldPath.equals(""))
+	       			//Heavy search
 	       			goldPath = planner.getStringPath(planner.astar(mapm.getGoldPos(), true,true) );
 	       		if(goldPath.equals(""))
-	       		{System.out.println("Impossible map");
-	       		System.exit(0);}            		
+	       			System.exit(0); //"Impossible" map       		
 	       		
 	       	}
 		}
@@ -176,9 +205,8 @@ public class Agent {
             else if(seenTools.size() != 0){
             	if((goldPath = getTool(seenTools, planner)).equals("")){
                    System.out.println("Foeee");
-		            if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
-		            	System.out.println("Exploring!" + goldPath);
-		            else if(mapm.sawGold())
+                   goldPath = planner.getStringPath(planner.explore());
+		           if(goldPath.equals("") && mapm.sawGold())
 		            {
                        goldPath = tryGetGold(mapm, planner);
 		            }
