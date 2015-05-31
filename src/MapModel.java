@@ -1,5 +1,5 @@
 /**
-* Class responsible to storage and maintenence of the environmental state
+* Class responsible for storage and maintenence of the environmental state
 *
  */
 import java.util.ArrayList;

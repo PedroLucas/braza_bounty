@@ -1,3 +1,6 @@
+/**
+ * This class is responsible for the searching method
+ */
 import java.lang.String;
 import java.lang.System;
 import java.util.Comparator;
@@ -20,11 +23,14 @@ public class Planner{
     }
 
     /**
-     * A-star se
-     * @param p
-     * @param useBombs
+     * A-star search using 'Cell' class as the agent's state.
+     * Usebombs expands significant states if true.
+     * Setting UseWallHistory as true expands even more.
+     *
+     * @param p -> Destiny point
+     * @param useBombs -> allow a-star search to perform dynamite explosion
      * @param useWallHistory
-     * @return
+     * @return the result path of the seach represented by a list of points
      */
     public LinkedList<Point> astar(Point p, boolean useBombs, boolean useWallHistory) {
         CellComparator cmp = new CellComparator(p);
@@ -140,13 +146,21 @@ public class Planner{
 
 
     }
-    
+
+    /**
+     * Class to return to starting point after finding the gold
+     * @return
+     */
     public String goHome()
     {
     	return getStringPath(astar(mapModel.home()));
     }
-    
-    
+
+    /**
+     * Check whether is possible to increase map information
+     * @param p
+     * @return
+     */
     private boolean addsVisibility(Point p)
     {
     	for(int i = -2; i <= 2; i++)
@@ -155,7 +169,11 @@ public class Planner{
     					return true;
     	return false;
     }
-    
+
+    /**
+     * Explores the map without using limited resources (i.e dynamites)
+     * @return
+     */
     public LinkedList<Point> explore() {
         LinkedList<Point> queue = new LinkedList<Point>();
         HashSet<Point> visited = new HashSet<Point>();
@@ -202,13 +220,16 @@ public class Planner{
 
 
     }
-    
-    
-    
 
+
+    /**
+     * Implementation of Manhattan distance heuristic
+     * @param i
+     * @param d
+     * @return
+     */
     private int h(Point i, Point d)
     {
-        //Manhattan distance
         int dx = Math.abs(i.col - d.col);
         int dy = Math.abs(i.lin - d.lin);
         int dist = dx + dy;
@@ -216,7 +237,9 @@ public class Planner{
     }
 
 
-    
+    /**
+     * Class to define sorting criteria of the priority queue used in a-star search
+      */
     private class CellComparator implements Comparator {
     	
     	Point p;
@@ -244,9 +267,14 @@ public class Planner{
         }
     }
 
-    
 
-
+    /**
+     * Returns orientation between two points to define the agent's command (e.g. turn rigth)
+     *
+     * @param p1
+     * @param p2
+     * @return orientation
+     */
     private int getOrientation(Point p1, Point p2)
     {
         int dLin = (p1.lin - p2.lin);
@@ -265,6 +293,14 @@ public class Planner{
 
     }
 
+    /**
+     * Returns the final agent's commands.
+     *
+     * @param p1
+     * @param p2
+     * @param orient
+     * @return
+     */
     private String getCommands(Point p1, Point p2, int orient)
     {
         int orient2;
@@ -296,6 +332,11 @@ public class Planner{
 
     }
 
+    /**
+     * Returns ommands resulted from a-star search
+     * @param pathStk
+     * @return
+     */
     public String getStringPath(LinkedList<Point> pathStk)
     {
     	if(pathStk == null)

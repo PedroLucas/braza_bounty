@@ -1,5 +1,5 @@
 /**
- *
+ * Representation of agent's state during the a-star search
  *
  */
 import java.util.BitSet;
