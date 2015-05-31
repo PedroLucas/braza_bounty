@@ -64,10 +64,10 @@ public class Cell {
 	        }
 	        
 	        Cell c = (Cell) o;
-	        BitSet tempBits = (BitSet) wallsDestroyedBits.clone();
-	        tempBits.xor(c.wallsDestroyedBits);
-	        if(!tempBits.isEmpty()) return false;
-	        
+//	        BitSet tempBits = (BitSet) wallsDestroyedBits.clone();
+//	        tempBits.xor(c.wallsDestroyedBits);
+//	        if(!tempBits.isEmpty()) return false;
+//
 	      /*  else
 	        {
 	        	Iterator<Point> iterator = this.wallsDestroyed.iterator(); 
@@ -95,7 +95,7 @@ public class Cell {
 		int axe = hasAxe? 1 : 0;
 		int boat = inBoat? 1 : 0;
 	   
-	    return ((51 + this.bombs())*51 + axe + boat )*51 + p.hashCode() + wallsDestroyedBits.hashCode();
+	    return ((51 + this.bombs())*51 + axe + boat )*51 + p.hashCode();// + wallsDestroyedBits.hashCode();
 	}
 	
 	public void useBomb(Point p)

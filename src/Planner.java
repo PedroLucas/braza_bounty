@@ -1,6 +1,8 @@
 import java.awt.*;
+import java.lang.Exception;
 import java.lang.String;
 import java.lang.System;
+import java.lang.Thread;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -37,9 +39,11 @@ public class Planner{
         System.out.println("Starting bombs in A*:"+ aCell.bombs()  );
         pq.add(aCell);
         
-        if(useBombs)
-        	uselessWalls = uselessWalls();
-
+        if(useBombs) {
+            uselessWalls = uselessWalls();
+            mapModel.printMap(uselessWalls);
+           // try{Thread.sleep(10000);}catch(Exception e){};
+        }
         
         
         
@@ -80,7 +84,7 @@ public class Planner{
                         
                         if(ch == MapModel.WALL && !tempCell.isWallDestroyed(paux))
                         { 
-                        	if(tempCell.bombs() > 0 && useBombs && !getBit(uselessWalls, paux))
+                        	if(tempCell.bombs() > 0 && useBombs)// && !getBit(uselessWalls, paux))
                         		tempCell.useBomb(paux);
                         	else continue;
 
@@ -322,8 +326,8 @@ public class Planner{
     	HashSet<Point> visited = new HashSet<Point>();
     	HashSet<Point> tempVisited = new HashSet<Point>();
     	String expandTiles = ""+MapModel.WALL;
-		if(!mapModel.hasAxe())
-			expandTiles += MapModel.TREE;
+//		if(!mapModel.hasAxe())
+//			expandTiles += MapModel.TREE;
     	for(int lin = 0; lin < 80; lin++)
     		for(int col = 0; col < 80; col++)
     		{
@@ -399,8 +403,8 @@ public class Planner{
                     if(visited.contains(paux)) continue;
     				char ch = mapModel.map(paux);
     				String expandTiles = ""+MapModel.WALL;
-    				if(!mapModel.hasAxe())
-    					expandTiles += MapModel.TREE;
+//    				if(!mapModel.hasAxe())
+//    					expandTiles += MapModel.TREE;
     				if(expandTiles.indexOf(ch) != -1){
 	    				queue.add(paux);
 	    				visited.add(paux);
@@ -420,7 +424,7 @@ public class Planner{
     
     private void setBit(BitSet bits, Point p)
     {
-    	bits.set(p.lin*80 + p.col);
+    	bits.set(p.lin * 80 + p.col);
     }
     
     private boolean getBit(BitSet bits, Point p)

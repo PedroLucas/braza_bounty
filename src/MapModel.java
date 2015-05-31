@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.LinkedList;
 
 
@@ -293,8 +294,8 @@ public class MapModel {
 			   if(i != 2 || j != 2) 
 				   setPos(lin + i -2, col + j -2, view[i][j]);
    }
-   
-   
+
+
    public void printMap()
    {
 	   for(int i = minLin; i <= maxLin; i++)
