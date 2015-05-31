@@ -72,8 +72,10 @@ public class Agent {
 	   	System.out.println("Going to get a tool!");
 	   	while(tempPath == "" && seenTools.size() != 0)
 	   	{
+	   		System.out.println("Penis");
 	   		Point pTool = seenTools.removeLast();
 	   		tempPath = planner.getStringPath(planner.astar(pTool));
+	   		System.out.println("Fim--------------------Penis");
 	   	}
 	   	return tempPath;
    }

@@ -69,7 +69,7 @@ public class Planner{
                     {
                         
                         Cell tempCell = new Cell(paux, cell.cost + 1, cell);
-                        if(visited.contains(tempCell)) continue;
+                        
                         if(ch == MapModel.WALL && !tempCell.wallsDestroyed.contains(paux))
                         { 
                         	if(tempCell.bombs() > 0 /*&& !tempCell.wallsDestroyed.contains(paux)*/)
@@ -82,8 +82,10 @@ public class Planner{
                         if(ch == MapModel.BOAT) tempCell.getInBoat(paux);
                         else if( ch != MapModel.WATER && inBoatNow) tempCell.getOutBoat(pc);                        
                         if(ch == MapModel.AXE) tempCell.hasAxe = true;
+                        if(visited.contains(tempCell)) continue;
                         pq.add(tempCell);
                         visited.add(tempCell);
+                        //System.out.println("A* point expanded:" + paux );
                         count++;
                     }
 

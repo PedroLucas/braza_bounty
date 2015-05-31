@@ -111,7 +111,7 @@ public class Cell {
 	
 	public int getTotalCost()
 	{
-		return (wallsDestroyed.size() - this.bombs())*wallCost + cost;
+		return (wallsDestroyed.size() - this.bombs())*wallCost + cost -bombsCaught.size()*100;
 	}
 	
 	public void getBomb(Point p)
