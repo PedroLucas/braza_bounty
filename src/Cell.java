@@ -1,3 +1,7 @@
+/**
+ *
+ *
+ */
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,7 +57,8 @@ public class Cell {
 	    this.nWallsDestroyed = 0;
 	    this.useWallHistory = false;
 	}
-	
+
+	// Auxiliar function for comparation between cells
 	 @Override
 	    public boolean equals(Object o) {
 	 
@@ -86,7 +91,11 @@ public class Cell {
 	        		(this.bombsUsed ==  c.bombsUsed) &&
 	        		(this.bombs() == c.bombs()) );
 	    }
-	
+
+	/**
+	 * Simple override of hash function
+	 * @return
+	 */
 	@Override
 	public int hashCode() {
 		int axe = hasAxe? 1 : 0;
@@ -94,7 +103,11 @@ public class Cell {
 	   
 	    return ((51 + this.bombs())*51 + axe + boat )*51 + p.hashCode();// + wallsDestroyedBits.hashCode();
 	}
-	
+
+	/**
+	 * Register bomb explosion in a-star search
+	 * @param p
+	 */
 	public void useBomb(Point p)
 	{
 		
@@ -102,7 +115,11 @@ public class Cell {
 		nWallsDestroyed++;
 		bombsUsed++;
 	}
-	
+
+// ==================================================================
+// Getters   ========================================================
+// ==================================================================
+
 	public int bombs()
 	{
 		return iniBombs - bombsUsed + bombsCaught.size();
@@ -118,7 +135,8 @@ public class Cell {
 	{
 		return wallsDestroyedBits.get(p.lin*80 + p.col);
 	}
-	
+
+	// Heuristic + Cost to sort elements for a-star search
 	public int getTotalCost()
 	{
 		return (nWallsDestroyed - this.bombs())*wallCost + cost -bombsCaught.size()*100;

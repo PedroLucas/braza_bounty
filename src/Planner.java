@@ -19,6 +19,13 @@ public class Planner{
     	return astar(p,false,false);
     }
 
+    /**
+     * A-star se
+     * @param p
+     * @param useBombs
+     * @param useWallHistory
+     * @return
+     */
     public LinkedList<Point> astar(Point p, boolean useBombs, boolean useWallHistory) {
         CellComparator cmp = new CellComparator(p);
         PriorityQueue<Cell> pq = new PriorityQueue<Cell>(20, cmp);

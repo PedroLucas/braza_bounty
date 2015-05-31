@@ -1,3 +1,7 @@
+/**
+* Class responsible to storage and maintenence of the environmental state
+*
+ */
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.LinkedList;
@@ -180,9 +184,14 @@ public class MapModel {
    
    
    /*****************************************************/
-   
-   
-   
+
+
+	/**
+	 * Add newly found objects in respective lists to further assistance in strategical model
+	 * @param lin
+	 * @param col
+	 * @param ch
+	 */
    private void setPos(int lin, int col, char ch)
    {
 	   if(lin < 0 || col < 0) return;
@@ -227,9 +236,13 @@ public class MapModel {
 	   
 	   map[lin][col] = ch;
    }
-   
-   
-   
+
+
+	/**
+	 * Rotates matrix to standardization of the recorded map
+	 * @param mat
+	 * @return
+	 */
    private char[][] rotateMatrixRight(char[][] mat)
    {
 	   int n = mat.length;
@@ -241,7 +254,12 @@ public class MapModel {
 	    }
 	   return rotated;
    }
-   
+
+	/**
+	 * Analog to rotateMatrixRight
+	 * @param mat
+	 * @return
+	 */
    private char[][] rotateMatrixLeft(char[][] mat)
    {
 	   int n = mat.length;
@@ -253,8 +271,13 @@ public class MapModel {
 	    }
 	   return rotated;
    }
-   
-   /* Creates a copy of a square matrix */
+
+	/**
+	 * Creates a copy of a square matrix
+	 *
+	 * @param mat
+	 * @return
+	 */
    
    private char[][] copyMatrix(char[][] mat)
    {
@@ -266,7 +289,11 @@ public class MapModel {
 	   
 	   return copy;
    }
-   
+
+	/**
+	 * Rotates the agent's field of view to update the recorded map
+	 * @param view
+	 */
    
    public void updateMap(char[][] view)
    {
@@ -317,7 +344,11 @@ public class MapModel {
 	   }
 	   System.out.println("Direction:"+dir);
    }
-   
+
+	/**
+	 * Updates map and number of TNT according to agent's decision
+	 * @param ac
+	 */
    public void doAction(char ac)
    {
 	   switch(ac)
@@ -348,7 +379,10 @@ public class MapModel {
 			break;
 	   }
    }
-   
+
+	/**
+	 * Updates the agent's state according to the tale it is going to.
+	 */
    private void moveFoward()
    {
 	   int nextLin = lin, nextCol = col;
