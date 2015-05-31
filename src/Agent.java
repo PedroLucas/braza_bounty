@@ -92,7 +92,6 @@ public class Agent {
    static String getTool(LinkedList<Point> seenTools, Planner planner)
    {
 	   	String tempPath = "";
-	   	System.out.println("Going to get a tool!");
 	   	while(tempPath == "" && seenTools.size() != 0)
 	   	{
 	   		Point pTool = seenTools.removeLast();
@@ -189,8 +188,8 @@ public class Agent {
             }
             action = 'c';
             mapm.updateMap( view );
-            mapm.printMap();
-            agent.print_view( view ); // COMMENT THIS OUT BEFORE SUBMISSION
+//            mapm.printMap();
+//            agent.print_view( view ); // COMMENT THIS OUT BEFORE SUBMISSION
             seenTools.addAll(mapm.seenToolsList());
             if(!goldPath.equals(""))
             {
@@ -204,7 +203,7 @@ public class Agent {
             	goldPath = planner.goHome();
             else if(seenTools.size() != 0){
             	if((goldPath = getTool(seenTools, planner)).equals("")){
-                   System.out.println("Foeee");
+
                    goldPath = planner.getStringPath(planner.explore());
 		           if(goldPath.equals("") && mapm.sawGold())
 		            {
@@ -212,8 +211,8 @@ public class Agent {
 		            }
             	}
             }
-            else if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") )         	  
-            	System.out.println("Exploring!" + goldPath);
+            else if( !(goldPath = planner.getStringPath(planner.explore()) ).equals("") ) ;
+
             else if(mapm.sawGold())
             {
             	goldPath = tryGetGold(mapm, planner);

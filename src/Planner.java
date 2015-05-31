@@ -44,7 +44,6 @@ public class Planner{
         aCell.inBoat = mapModel.inBoat();
         aCell.boats.addAll(mapModel.boatsList());
         aCell.useWallHistory = useWallHistory;
-        System.out.println("Starting bombs in A*:"+ aCell.bombs()  );
         pq.add(aCell);        
         
         int count = 0;
@@ -102,43 +101,37 @@ public class Planner{
                         if(visited.contains(tempCell)) continue;
                         pq.add(tempCell);
                         visited.add(tempCell);
-                        System.out.println("A* point expanded:" + paux + ch);
+//                        System.out.println("A* point expanded:" + paux + ch);
                         count++;
                     }
 
                 }
 
         }
-        System.out.println("A* states:"+count);
+
         
         if (destCel == null) {
-            System.out.println("It was not able to find a path!");
+
             return null;
         }
         
         if(destCel.bombs() < 0)
         {
         	int bombs = destCel.bombs()*-1;
-        	System.out.println("Path found needs additional bombs:" + bombs);
         	return null;
         }
-        else System.out.println ("A* bombs left:" + destCel.bombs());
 
         Stack<Point> stAux;
         LinkedList<Point> path;
         stAux = new Stack<Point>();
         path = new LinkedList<Point>();
         Cell auxCell = destCel;
-        System.out.println("=====A*=====");
         stAux.push(destCel.p);
-        System.out.println(destCel.p.toString() + "Tipo:" + mapModel.map(destCel.p));
         while (auxCell.parent != auxCell)
         {
             auxCell = auxCell.parent;
             stAux.push(auxCell.p);
-            System.out.println(auxCell.p.toString() + "Tipo:" + mapModel.map(auxCell.p));
         }
-        System.out.println("============");
         while(!stAux.isEmpty()) path.add(stAux.pop());
 
         return path;
@@ -205,15 +198,15 @@ public class Planner{
                         queue.add(paux);
                         visited.add(paux);
                     }
-                    else System.out.println("Culpa dessa puta:" + ch);
+
 
                 }
         }
         if (destP == null) {
-            System.out.println("It was not able to find more room to explore!!!");
+
             return null;
         }
-        System.out.println("Terminou! agora Astar");
+
         
         return astar(destP);
 
@@ -288,7 +281,6 @@ public class Planner{
         else if(dCol == -1)
             return MapModel.EAST;
 
-        System.out.println("This should not have happened");
         return MapModel.WEST;
 
     }

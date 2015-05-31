@@ -139,7 +139,7 @@ public class Cell {
 	// Heuristic + Cost to sort elements for a-star search
 	public int getTotalCost()
 	{
-		return (nWallsDestroyed - this.bombs())*wallCost + cost -bombsCaught.size()*100;
+		return (nWallsDestroyed - this.bombs())*wallCost + cost -bombsCaught.size();
 	}
 	
 	public void getBomb(Point p)
